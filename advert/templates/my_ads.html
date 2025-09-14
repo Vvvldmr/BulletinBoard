@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h1>Мои объявления</h1>
+
+<a href="{% url 'ad_create' %}" class="btn btn-primary mb-3">Создать новое объявление</a>
+
+<div class="row">
+    {% for ad in ads %}
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">{{ ad.title }}</h5>
+                <p class="card-text">{{ ad.description|truncatewords:20 }}</p>
+                <p class="card-text">
+                    <strong>Цена:</strong> {{ ad.price }} руб.<br>
+                    <strong>Город:</strong> {{ ad.city }}<br>
+                    <strong>Создано:</strong> {{ ad.created_at|date:"d.m.Y H:i" }}
+                </p>
+                <div class="btn-group">
+                    <a href="{% url 'ad_detail' ad.pk %}" class="btn btn-sm btn-outline-primary">Просмотреть</a>
+                    <a href="{% url 'ad_edit' ad.pk %}" class="btn btn-sm btn-outline-secondary">Редактировать</a>
+                    <a href="{% url 'ad_delete' ad.pk %}" class="btn btn-sm btn-outline-danger">Удалить</a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="col-12">
+        <div class="alert alert-info">
+            У вас пока нет объявлений. <a href="{% url 'ad_create' %}">Создайте первое объявление!</a>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="card">
+    <div class="card-body">
+        <h1 class="card-title">{{ ad.title }}</h1>
+        <p class="card-text">{{ ad.description }}</p>
+        <p><strong>Цена:</strong> {{ ad.price }} руб.</p>
+        <p><strong>Город:</strong> {{ ad.city }}</p>
+        <p><strong>Автор:</strong> {{ ad.author.username }}</p>
+        <p><strong>Создано:</strong> {{ ad.created_at|date:"d.m.Y H:i" }}</p>
+        
+        {% if user == ad.author %}
+        <div class="btn-group">
+            <a href="{% url 'ad_edit' ad.pk %}" class="btn btn-secondary">Редактировать</a>
+            <a href="{% url 'ad_delete' ad.pk %}" class="btn btn-danger">Удалить</a>
+        </div>
+        {% endif %}
+        
+        <a href="{% url 'ad_list' %}" class="btn btn-primary">Назад к списку</a>
+    </div>
+</div>
+{% endblock %}
