@@ -10,14 +10,21 @@
         <p><strong>Автор:</strong> {{ ad.author.username }}</p>
         <p><strong>Создано:</strong> {{ ad.created_at|date:"d.m.Y H:i" }}</p>
         
-        {% if user == ad.author %}
-        <div class="btn-group">
-            <a href="{% url 'ad_edit' ad.pk %}" class="btn btn-secondary">Редактировать</a>
-            <a href="{% url 'ad_delete' ad.pk %}" class="btn btn-danger">Удалить</a>
+        {% if user.is_authenticated and user != ad.author %}
+        <div class="mt-4">
+            <a href="{% url 'create_response' ad.pk %}" class="btn btn-success">Откликнуться на объявление</a>
         </div>
         {% endif %}
         
-        <a href="{% url 'ad_list' %}" class="btn btn-primary">Назад к списку</a>
+        {% if user == ad.author %}
+        <div class="btn-group mt-3">
+            <a href="{% url 'ad_edit' ad.pk %}" class="btn btn-secondary">Редактировать</a>
+            <a href="{% url 'ad_delete' ad.pk %}" class="btn btn-danger">Удалить</a>
+            <a href="{% url 'my_responses' %}" class="btn btn-info">Просмотреть отклики</a>
+        </div>
+        {% endif %}
+        
+        <a href="{% url 'ad_list' %}" class="btn btn-primary mt-3">Назад к списку</a>
     </div>
 </div>
 {% endblock %}

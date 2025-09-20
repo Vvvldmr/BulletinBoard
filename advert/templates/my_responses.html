@@ -1,0 +1,71 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h1>Мои отклики</h1>
+
+<ul class="nav nav-tabs mb-4">
+    <li class="nav-item">
+        <a class="nav-link active" data-bs-toggle="tab" href="#received">Отклики на мои объявления</a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" data-bs-toggle="tab" href="#sent">Мои отправленные отклики</a>
+    </li>
+</ul>
+
+<div class="tab-content">
+    <div class="tab-pane fade show active" id="received">
+        {% for response in received_responses %}
+        <div class="card mb-3">
+            <div class="card-body">
+                <h5 class="card-title">Отклик на: {{ response.advertisement.title }}</h5>
+                <p class="card-text"><strong>От:</strong> {{ response.sender.username }}</p>
+                <p class="card-text"><strong>Сообщение:</strong> {{ response.message }}</p>
+                <p class="card-text">
+                    <strong>Статус:</strong> 
+                    <span class="badge 
+                        {% if response.status == 'new' %}bg-secondary
+                        {% elif response.status == 'accepted' %}bg-success
+                        {% else %}bg-danger{% endif %}">
+                        {{ response.get_status_display }}
+                    </span>
+                </p>
+                <p class="card-text"><small class="text-muted">{{ response.created_at|date:"d.m.Y H:i" }}</small></p>
+                
+                {% if response.status == 'new' %}
+                <div class="btn-group">
+                    <a href="{% url 'update_response_status' response.pk 'accepted' %}" class="btn btn-sm btn-success">Принять</a>
+                    <a href="{% url 'update_response_status' response.pk 'rejected' %}" class="btn btn-sm btn-danger">Отклонить</a>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        {% empty %}
+        <p>Нет откликов на ваши объявления</p>
+        {% endfor %}
+    </div>
+    
+    <div class="tab-pane fade" id="sent">
+        {% for response in sent_responses %}
+        <div class="card mb-3">
+            <div class="card-body">
+                <h5 class="card-title">Отклик на: {{ response.advertisement.title }}</h5>
+                <p class="card-text"><strong>Автор:</strong> {{ response.receiver.username }}</p>
+                <p class="card-text"><strong>Сообщение:</strong> {{ response.message }}</p>
+                <p class="card-text">
+                    <strong>Статус:</strong> 
+                    <span class="badge 
+                        {% if response.status == 'new' %}bg-secondary
+                        {% elif response.status == 'accepted' %}bg-success
+                        {% else %}bg-danger{% endif %}">
+                        {{ response.get_status_display }}
+                    </span>
+                </p>
+                <p class="card-text"><small class="text-muted">{{ response.created_at|date:"d.m.Y H:i" }}</small></p>
+            </div>
+        </div>
+        {% empty %}
+        <p>Вы еще не отправляли откликов</p>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

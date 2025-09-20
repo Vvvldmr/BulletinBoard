@@ -1,8 +1,9 @@
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from .models import Advertisement
-from .forms import AdvertisementForm
+from django.http import HttpResponseForbidden
+from .models import Advertisement, Response
+from .forms import AdvertisementForm, ResponseForm
 
 def ad_list(request):
     ads = Advertisement.objects.all()
@@ -64,3 +65,72 @@ def ad_delete(request, pk):
         return redirect('my_ads')
     
     return render(request, 'ad_confirm_delete.html', {'ad': ad})
+
+@login_required
+def create_response(request, pk):
+    advertisement = get_object_or_404(Advertisement, pk=pk)
+    
+    # Нельзя откликаться на своё объявление
+    if advertisement.author == request.user:
+        messages.error(request, 'Вы не можете откликнуться на своё объявление')
+        return redirect('ad_detail', pk=advertisement.pk)
+    
+    # Проверяем, не откликался ли уже пользователь
+    existing_response = Response.objects.filter(
+        advertisement=advertisement,
+        sender=request.user
+    ).first()
+    
+    if existing_response:
+        messages.info(request, 'Вы уже откликнулись на это объявление')
+        return redirect('ad_detail', pk=advertisement.pk)
+    
+    if request.method == 'POST':
+        form = ResponseForm(request.POST)
+        if form.is_valid():
+            response = form.save(commit=False)
+            response.advertisement = advertisement
+            response.sender = request.user
+            response.receiver = advertisement.author
+            response.save()
+            messages.success(request, 'Ваш отклик успешно отправлен!')
+            return redirect('ad_detail', pk=advertisement.pk)
+    else:
+        form = ResponseForm()
+    
+    return render(request, 'create_response.html', {
+        'form': form,
+        'advertisement': advertisement
+    })
+
+@login_required
+def my_responses(request):
+    # Отклики на свои объявления
+    received_responses = Response.objects.filter(receiver=request.user).select_related(
+        'advertisement', 'sender'
+    )
+    
+    # Отклики, которые я отправил
+    sent_responses = Response.objects.filter(sender=request.user).select_related(
+        'advertisement', 'receiver'
+    )
+    
+    return render(request, 'my_responses.html', {
+        'received_responses': received_responses,
+        'sent_responses': sent_responses
+    })
+
+@login_required
+def update_response_status(request, pk, status):
+    response = get_object_or_404(Response, pk=pk)
+    
+    # Проверяем, что пользователь - автор объявления
+    if response.receiver != request.user:
+        return HttpResponseForbidden("У вас нет прав для этого действия")
+    
+    if status in ['accepted', 'rejected']:
+        response.status = status
+        response.save()
+        messages.success(request, f'Статус отклика обновлен на "{response.get_status_display()}"')
+    
+    return redirect('my_responses')
